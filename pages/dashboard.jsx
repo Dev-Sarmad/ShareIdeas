@@ -2,8 +2,16 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../utils/firebase";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import Message from "@/components/Message";
+import Link from "next/link";
 export default function Dashboard() {
   const route = useRouter();
   const [user, loading] = useAuthState(auth);
@@ -28,6 +36,11 @@ export default function Dashboard() {
       return data;
     });
   };
+  // deleting the post
+  const deletePost = async (id) => {
+    const docRef = doc(db, "posts", id);
+    await deleteDoc(docRef);
+  };
   useEffect(() => {
     getData();
     // when the user change then getData is called.
@@ -39,12 +52,24 @@ export default function Dashboard() {
         {posts.map((post) => (
           <Message {...post} key={post.id}>
             <div className="flex gap-3 mt-3">
+              <Link href={{pathname:'/post', query:post}}>
               <button className="bg-green-600 px-4 text-white">Edit</button>
-              <button className="bg-red-600 px-4 text-white">Delete</button>
+              </Link>
+              <button
+                onClick={() => deletePost(post.id)}
+                className="bg-red-600 px-4 text-white"
+              >
+                Delete
+              </button>
             </div>
           </Message>
         ))}
-        <button className="bg-gray-600 text-white px-4 " onClick={() => auth.signOut()}>signout</button>
+        <button
+          className="bg-gray-600 text-white px-4 "
+          onClick={() => auth.signOut()}
+        >
+          signout
+        </button>
       </div>
     </div>
   );
